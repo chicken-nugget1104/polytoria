@@ -1,1 +1,1 @@
-models,example-model1,Invisible spawn,xlx
+models,invis_spawn,Invisible spawn,xlx,0
