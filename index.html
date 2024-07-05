@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Directory</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+        }
+        h1 {
+            color: #ffcc00;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 10px;
+        }
+        .card {
+            background-color: #333;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            width: 200px;
+            transition: background-color 0.3s;
+        }
+        .card:hover {
+            background-color: #444;
+        }
+        .card img {
+            max-width: 100%;
+        }
+        .card-title {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .card-submitter {
+            font-size: 0.9em;
+        }
+        .card-downloads {
+            font-size: 0.9em;
+            color: #ffcc00;
+        }
+        .nav-button {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+        .nav-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Public Directory</h1>
+    <div>
+        <button class="nav-button" onclick="showSection('models')">Models</button>
+        <button class="nav-button" onclick="showSection('scripts')">Scripts</button>
+        <button class="nav-button" onclick="showSection('places')">Places</button>
+    </div>
+    <div class="container" id="content-container"></div>
+
+    <script>
+        const dataFile = 'data.txt';
+
+        function showSection(section) {
+            fetch(dataFile)
+                .then(response => response.text())
+                .then(text => {
+                    const lines = text.split('\n');
+                    const cards = lines.filter(line => line.trim() !== '').map(line => {
+                        const [sectionName, pngName, itemName, submitter, downloads] = line.split(',');
+                        return { sectionName, pngName, itemName, submitter, downloads };
+                    });
+                    displayCards(section, cards);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function displayCards(section, cards) {
+            const container = document.getElementById('content-container');
+            container.innerHTML = ''; // Clear previous content
+            cards.filter(card => card.sectionName === section).forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <img src="${card.sectionName}/${card.pngName}.png" alt="${card.itemName}">
+                    <div class="card-title">${card.itemName}</div>
+                    <div class="card-submitter">Submitted by: ${card.submitter}</div>
+                    <div class="card-downloads">Downloads: <span id="downloads-${card.pngName}">${card.downloads}</span></div>
+                    <a href="${card.sectionName}/${card.pngName}.zip" download onclick="updateDownloadCount('${card.pngName}')">Download</a>
+                `;
+                container.appendChild(cardElement);
+            });
+        }
+
+        function updateDownloadCount(pngName) {
+            // Increase the download count in the UI
+            const downloadsElement = document.getElementById(`downloads-${pngName}`);
+            let count = parseInt(downloadsElement.textContent, 10);
+            count += 1;
+            downloadsElement.textContent = count;
+
+            // TODO: Implement server-side update
+            // Make a request to the server to update the download count
+            fetch('update_downloads.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ pngName: pngName })
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            }).catch(error => {
+                console.error('Error updating download count:', error);
+            });
+        }
+
+        // Load the initial section
+        showSection('models');
+    </script>
+</body>
+</html>
