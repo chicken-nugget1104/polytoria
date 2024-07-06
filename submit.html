@@ -102,52 +102,59 @@
                 return;
             }
 
-            // Check the file with VirusTotal
-            const fileBuffer = await file.arrayBuffer();
-            const base64File = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
-            const virusTotalResponse = await fetch('https://www.virustotal.com/api/v3/files', {
-                method: 'POST',
-                headers: {
-                    'x-apikey': decryptedApiKey,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    file: base64File
-                })
-            });
-            const virusTotalData = await virusTotalResponse.json();
+            // Read the file as a binary string and convert to Base64
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const binaryStr = event.target.result;
+                const base64File = btoa(binaryStr);
 
-            if (virusTotalData.data.attributes.last_analysis_stats.malicious > 0) {
-                alert('This file contains a virus and cannot be submitted.');
-                return;
-            }
+                // Check the file with VirusTotal
+                const virusTotalResponse = await fetch('https://www.virustotal.com/api/v3/files', {
+                    method: 'POST',
+                    headers: {
+                        'x-apikey': decryptedApiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file: base64File
+                    })
+                });
 
-            // Send the submission data to the webhook
-            const submitter = formData.get('submitter');
-            const itemName = formData.get('itemName');
-            const webhookData = {
-                submitter: submitter,
-                itemName: itemName,
-                fileName: fileName,
-                fileUrl: URL.createObjectURL(file)
-            };
+                const virusTotalData = await virusTotalResponse.json();
 
-            fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(webhookData)
-            }).then(response => {
-                if (response.ok) {
-                    alert('Submission successful!');
-                } else {
-                    alert('Submission failed.');
+                if (virusTotalData.data.attributes.last_analysis_stats.malicious > 0) {
+                    alert('This file contains a virus and cannot be submitted.');
+                    return;
                 }
-            }).catch(error => {
-                console.error('Error submitting data:', error);
-                alert('Submission failed.');
-            });
+
+                // Send the submission data to the webhook
+                const submitter = formData.get('submitter');
+                const itemName = formData.get('itemName');
+                const webhookData = {
+                    submitter: submitter,
+                    itemName: itemName,
+                    fileName: fileName,
+                    fileUrl: URL.createObjectURL(file)
+                };
+
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(webhookData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('Submission successful!');
+                    } else {
+                        alert('Submission failed.');
+                    }
+                }).catch(error => {
+                    console.error('Error submitting data:', error);
+                    alert('Submission failed.');
+                });
+            };
+            reader.readAsBinaryString(file);
         });
     </script>
 </body>
