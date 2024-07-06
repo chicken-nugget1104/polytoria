@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a File</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #ffcc00;
+        }
+        form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        input[type="text"], input[type="file"] {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+        input[type="submit"]:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Submit a File</h1>
+    <form id="submission-form">
+        <input type="text" name="submitter" placeholder="Your Name" required>
+        <input type="text" name="itemName" placeholder="Item Name" required>
+        <input type="file" name="file" required>
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        // Decryption functions
+        function caesarDecrypt(text, shift) {
+            return text.split('').map(char => {
+                if (char.match(/[a-z]/i)) {
+                    const code = char.charCodeAt();
+                    let shiftBase = code >= 65 && code <= 90 ? 65 : 97;
+                    return String.fromCharCode(((code - shiftBase - shift + 26) % 26) + shiftBase);
+                }
+                return char;
+            }).join('');
+        }
+
+        function vigenereDecrypt(text, key) {
+            let result = '';
+            let keyIndex = 0;
+            for (let i = 0; i < text.length; i++) {
+                const textChar = text.charCodeAt(i) - 65;
+                const keyChar = key.charCodeAt(keyIndex % key.length) - 65;
+                const decryptedChar = String.fromCharCode(((textChar - keyChar + 26) % 26) + 65);
+                result += decryptedChar;
+                keyIndex++;
+            }
+            return result;
+        }
+
+        // Encrypted API Key and keys
+        const encryptedApiKey = '274fq8r17xq49mp64vn3bgopw683tv1264836p28457g4031q1r378a05442q7ml';
+        const caesarShift = 9;
+        const vigenereKey = 'THEMHACKERSBELIKE';
+
+        // Decrypt the API Key
+        const decryptedApiKey = caesarDecrypt(vigenereDecrypt(encryptedApiKey, vigenereKey), caesarShift);
+
+        const form = document.getElementById('submission-form');
+        const webhookUrl = 'https://discord.com/api/webhooks/1259187063375527946/cf0svFI43oBDDD7N-tupK7CBulyPK0AQYyPYKTqFyNe0ssj_Farl9pvxeqB3b_yirO9c';
+        const blockedFiles = ['iamnotavirus.zip', 'iamavirus.zip']; // List of blocked files
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const file = formData.get('file');
+            const fileName = file.name;
+
+            if (blockedFiles.includes(fileName)) {
+                alert('This file is blocked.');
+                return;
+            }
+
+            // Check the file with VirusTotal
+            const fileBuffer = await file.arrayBuffer();
+            const base64File = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+            const virusTotalResponse = await fetch('https://www.virustotal.com/api/v3/files', {
+                method: 'POST',
+                headers: {
+                    'x-apikey': decryptedApiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    file: base64File
+                })
+            });
+            const virusTotalData = await virusTotalResponse.json();
+
+            if (virusTotalData.data.attributes.last_analysis_stats.malicious > 0) {
+                alert('This file contains a virus and cannot be submitted.');
+                return;
+            }
+
+            // Send the submission data to the webhook
+            const submitter = formData.get('submitter');
+            const itemName = formData.get('itemName');
+            const webhookData = {
+                submitter: submitter,
+                itemName: itemName,
+                fileName: fileName,
+                fileUrl: URL.createObjectURL(file)
+            };
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(webhookData)
+            }).then(response => {
+                if (response.ok) {
+                    alert('Submission successful!');
+                } else {
+                    alert('Submission failed.');
+                }
+            }).catch(error => {
+                console.error('Error submitting data:', error);
+                alert('Submission failed.');
+            });
+        });
+    </script>
+</body>
+</html>
