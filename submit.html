@@ -53,39 +53,6 @@
     </form>
 
     <script>
-        // Decryption functions
-        function caesarDecrypt(text, shift) {
-            return text.split('').map(char => {
-                if (char.match(/[a-z]/i)) {
-                    const code = char.charCodeAt();
-                    let shiftBase = code >= 65 && code <= 90 ? 65 : 97;
-                    return String.fromCharCode(((code - shiftBase - shift + 26) % 26) + shiftBase);
-                }
-                return char;
-            }).join('');
-        }
-
-        function vigenereDecrypt(text, key) {
-            let result = '';
-            let keyIndex = 0;
-            for (let i = 0; i < text.length; i++) {
-                const textChar = text.charCodeAt(i) - 65;
-                const keyChar = key.charCodeAt(keyIndex % key.length) - 65;
-                const decryptedChar = String.fromCharCode(((textChar - keyChar + 26) % 26) + 65);
-                result += decryptedChar;
-                keyIndex++;
-            }
-            return result;
-        }
-
-        // Encrypted API Key and keys
-        const encryptedApiKey = '274fq8r17xq49mp64vn3bgopw683tv1264836p28457g4031q1r378a05442q7ml';
-        const caesarShift = 9;
-        const vigenereKey = 'THEMHACKERSBELIKE';
-
-        // Decrypt the API Key
-        const decryptedApiKey = caesarDecrypt(vigenereDecrypt(encryptedApiKey, vigenereKey), caesarShift);
-
         const form = document.getElementById('submission-form');
         const webhookUrl = 'https://discord.com/api/webhooks/1259187063375527946/cf0svFI43oBDDD7N-tupK7CBulyPK0AQYyPYKTqFyNe0ssj_Farl9pvxeqB3b_yirO9c';
         const blockedFiles = ['iamnotavirus.zip', 'iamavirus.zip']; // List of blocked files
@@ -102,59 +69,32 @@
                 return;
             }
 
-            // Read the file as a binary string and convert to Base64
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                const binaryStr = event.target.result;
-                const base64File = btoa(binaryStr);
-
-                // Check the file with VirusTotal
-                const virusTotalResponse = await fetch('https://www.virustotal.com/api/v3/files', {
-                    method: 'POST',
-                    headers: {
-                        'x-apikey': decryptedApiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        file: base64File
-                    })
-                });
-
-                const virusTotalData = await virusTotalResponse.json();
-
-                if (virusTotalData.data.attributes.last_analysis_stats.malicious > 0) {
-                    alert('This file contains a virus and cannot be submitted.');
-                    return;
-                }
-
-                // Send the submission data to the webhook
-                const submitter = formData.get('submitter');
-                const itemName = formData.get('itemName');
-                const webhookData = {
-                    submitter: submitter,
-                    itemName: itemName,
-                    fileName: fileName,
-                    fileUrl: URL.createObjectURL(file)
-                };
-
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(webhookData)
-                }).then(response => {
-                    if (response.ok) {
-                        alert('Submission successful!');
-                    } else {
-                        alert('Submission failed.');
-                    }
-                }).catch(error => {
-                    console.error('Error submitting data:', error);
-                    alert('Submission failed.');
-                });
+            // Send the submission data to the webhook
+            const submitter = formData.get('submitter');
+            const itemName = formData.get('itemName');
+            const webhookData = {
+                submitter: submitter,
+                itemName: itemName,
+                fileName: fileName,
+                fileUrl: URL.createObjectURL(file)
             };
-            reader.readAsBinaryString(file);
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(webhookData)
+            }).then(response => {
+                if (response.ok) {
+                    alert('Submission successful!');
+                } else {
+                    alert('Submission failed.');
+                }
+            }).catch(error => {
+                console.error('Error submitting data:', error);
+                alert('Submission failed.');
+            });
         });
     </script>
 </body>
