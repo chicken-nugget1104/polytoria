@@ -84,6 +84,7 @@
         <button class="nav-button" onclick="showSection('models')">Models</button>
         <button class="nav-button" onclick="showSection('scripts')">Scripts</button>
         <button class="nav-button" onclick="showSection('places')">Places</button>
+        <button class="nav-button" onclick="showSection('tools')">Tools/Items</button>
         <button class="nav-button" onclick="showSection('versions')">Client builds</button>
         <button class="nav-button" onclick="window.location.href='submit.html'">Submit</button>
     </div>
@@ -93,24 +94,6 @@
 
     <script>
         const dataFile = 'data.txt';
-        const ads = ['9053.png', '9053-2.png', '30723.png']; // List of ad image names
-        const adLinks = ['https://polytoria.co/places/9053', 'https://polytoria.co/places/9053', 'https://polytoria.co/store/30723']; // Corresponding links
-
-        function getRandomAd() {
-            const index = Math.floor(Math.random() * ads.length);
-            return { ad: ads[index], link: adLinks[index] };
-        }
-
-        function showAds() {
-            const topAdElement = document.getElementById('top-ad');
-            const cornerAdElement = document.getElementById('corner-ad');
-
-            const topAd = getRandomAd();
-            const cornerAd = getRandomAd();
-
-            topAdElement.innerHTML = `<a href="${topAd.link}" target="_blank"><img src="ad-assets/${topAd.ad}" alt="Ad"></a>`;
-            cornerAdElement.innerHTML = `<a href="${cornerAd.link}" target="_blank"><img src="ad-assets/${cornerAd.ad}" alt="Ad"></a>`;
-        }
 
         function showSection(section) {
             fetch(dataFile)
@@ -170,9 +153,6 @@
 
         // Load the initial section
         showSection('models');
-
-        // Show ads
-        //showAds();
     </script>
 </body>
 </html>

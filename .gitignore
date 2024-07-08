@@ -29,8 +29,14 @@ wp-config.php
 # Uploads
 /wp-content/uploads/
 
-# Log files
+# Log files and ptmd files
 *.log
+*.ptmd
+*.poly
+*.rar
+*.tar
+*.superprivatefile
 
 # htaccess
 /.htaccess
+/ad-assets

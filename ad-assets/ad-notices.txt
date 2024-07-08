@@ -1,5 +1,0 @@
-HERE IS HOW AD'S WORK ON MY DIRECTORY:
-The png name is obviously the asset id on polytoria.co which i believe is a mirror of polytoria.com.
-
-HERE IS HOW YOU CAN SUBMIT AD'S:
-Make a pull request with your ad in this exact folder with the asset id' if it is NOT from polytoria then i will decline.
